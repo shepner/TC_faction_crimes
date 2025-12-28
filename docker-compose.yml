@@ -13,8 +13,8 @@ services:
     volumes:
       # Mount credentials file
       - ./config/credentials.json:/app/config/credentials.json:ro
+      # Mount config directory so changes take effect without rebuild
+      - ./config/TC_API_config.json:/app/config/TC_API_config.json:ro
       # Mount logs directory for persistence
       - ./logs:/app/logs
-    # Optional: mount config if you want to modify without rebuilding
-    # - ./config:/app/config:ro
 
