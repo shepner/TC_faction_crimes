@@ -5,7 +5,7 @@ Please provide the following information to proceed with implementation:
 ## 1. Torn City API Configuration
 
 ### API Key
-- [x] **API Key**: **Provided in config** (`[REDACTED]` for faction_40832, empty for faction_17991)
+- [x] **API Key**: **Provided in config** (stored securely, not in version control)
   - Stored in `config/TC_API_config.json` (will be moved to environment variables in code)
   - Note: This key will be stored as an environment variable, never in code
 
