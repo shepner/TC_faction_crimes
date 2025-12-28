@@ -310,8 +310,8 @@ class BigQueryLoader:
         """
         project_id, dataset_id, table_name = self._parse_table_id(table_id)
         
-        # Only allow operations on this specific pre-existing table
-        ALLOWED_PRE_EXISTING_TABLE = "v2_faction_40832_crimes-new"
+        # Only allow operations on these specific pre-existing tables
+        ALLOWED_PRE_EXISTING_TABLES = ["v2_faction_40832_crimes-new", "v2_faction_40832_crimes-raw"]
 
         # Ensure dataset exists
         dataset_ref = self.client.dataset(dataset_id)
@@ -329,11 +329,11 @@ class BigQueryLoader:
             table = self.client.get_table(table_ref)
             logger.debug(f"Table {table_id} already exists")
             
-            # Skip all pre-existing tables except the allowed one
-            if table_name != ALLOWED_PRE_EXISTING_TABLE:
+            # Skip all pre-existing tables except the allowed ones
+            if table_name not in ALLOWED_PRE_EXISTING_TABLES:
                 raise ValueError(
                     f"Table {table_id} is a pre-existing table. "
-                    f"Only '{ALLOWED_PRE_EXISTING_TABLE}' is allowed. "
+                    f"Only {ALLOWED_PRE_EXISTING_TABLES} are allowed. "
                     "Skipping - will not modify pre-existing tables."
                 )
             
@@ -554,8 +554,9 @@ class BigQueryLoader:
             MERGE SQL statement
         """
         # Build field list (excluding the key field for UPDATE SET)
+        # Also exclude 'fetched_at' from updates to preserve original fetch timestamp
         field_names = [field.name for field in schema]
-        update_fields = [f for f in field_names if f != key_field]
+        update_fields = [f for f in field_names if f != key_field and f != "fetched_at"]
         insert_fields = field_names
 
         # Build UPDATE SET clause (use target. prefix for clarity)

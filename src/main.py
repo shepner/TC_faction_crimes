@@ -7,7 +7,7 @@ import time
 import urllib.parse
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from src.api_client import TornCityAPIClient
 from src.bigquery_loader import BigQueryLoader
