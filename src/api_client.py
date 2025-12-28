@@ -46,6 +46,7 @@ class TornCityAPIClient:
         timeout: int = 30,
         max_retries: int = 3,
         retry_delay: int = 60,
+        base_url: str = "https://api.torn.com",
     ):
         """
         Initialize Torn City API client.
@@ -56,13 +57,14 @@ class TornCityAPIClient:
             timeout: Request timeout in seconds
             max_retries: Maximum number of retry attempts
             retry_delay: Delay between retries in seconds
+            base_url: API base URL (defaults to https://api.torn.com)
         """
         self.api_key = api_key
         self.timeout = timeout
         self.max_retries = max_retries
         self.retry_delay = retry_delay
         self.rate_limiter = RateLimiter(rate_limit)
-        self.base_url = "https://api.torn.com"
+        self.base_url = base_url
 
     def _make_request(
         self, url: str, params: Optional[Dict[str, Any]] = None

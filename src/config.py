@@ -31,6 +31,22 @@ class Config:
         with open(self.config_path, "r") as f:
             self.config = json.load(f)
 
+    def get_api_base_url(self) -> str:
+        """
+        Get API base URL.
+
+        Returns:
+            API base URL
+        """
+        # Check environment variable first
+        env_url = os.getenv("TC_API_BASE_URL")
+        if env_url:
+            return env_url
+
+        # Fall back to config file
+        api_config = self.config.get("api", {})
+        return api_config.get("base_url", "https://api.torn.com")
+
     def get_api_key(self, key_name: str) -> Optional[str]:
         """
         Get API key by name, checking environment variables first.
@@ -111,6 +127,23 @@ class Config:
         if not dataset_id:
             raise ValueError("GCP dataset_id not configured")
         return dataset_id
+
+    def get_gcp_allowed_pre_existing_tables(self) -> List[str]:
+        """
+        Get list of allowed pre-existing tables that can be modified.
+
+        Returns:
+            List of allowed table names
+        """
+        # Check environment variable first (comma-separated)
+        env_tables = os.getenv("TC_GCP_ALLOWED_PRE_EXISTING_TABLES")
+        if env_tables:
+            return [table.strip() for table in env_tables.split(",") if table.strip()]
+
+        # Fall back to config file
+        gcp_config = self.config.get("gcp", {})
+        allowed_tables = gcp_config.get("allowed_pre_existing_tables", [])
+        return allowed_tables if isinstance(allowed_tables, list) else []
 
     def get_endpoints(self) -> List[Dict[str, Any]]:
         """

@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Validate that BigQuery table contents match the API by comparing record counts."""
+"""
+Validate that BigQuery table contents match the API by comparing record counts.
+
+This utility script compares the number of records in BigQuery with the number
+of records available from the API to ensure data consistency. Useful for:
+- Verifying data completeness
+- Detecting missing records
+- Identifying duplicate records
+
+Usage:
+    python validate_counts.py
+"""
 
 import logging
 import sys
@@ -67,7 +78,8 @@ def main():
     
     table_id = endpoint.get("table")
     endpoint_url = endpoint.get("url", "")
-    endpoint_path = endpoint_url.replace("https://api.torn.com", "")
+    base_url = config.get_api_base_url()
+    endpoint_path = endpoint_url.replace(base_url, "")
     
     # Get API key
     api_key_name = endpoint.get("api_key")
@@ -81,6 +93,7 @@ def main():
         api_key=api_key,
         rate_limit=config.get_rate_limit(endpoint),
         timeout=config.get_timeout(endpoint),
+        base_url=base_url,
     )
     
     # Handle time windows if configured

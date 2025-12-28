@@ -19,6 +19,7 @@ class BigQueryLoader:
         credentials_path: str,
         project_id: str,
         dataset_id: str,
+        allowed_pre_existing_tables: Optional[List[str]] = None,
     ):
         """
         Initialize BigQuery loader.
@@ -27,10 +28,13 @@ class BigQueryLoader:
             credentials_path: Path to service account JSON credentials
             project_id: GCP project ID
             dataset_id: BigQuery dataset ID
+            allowed_pre_existing_tables: List of pre-existing table names that can be modified.
+                                        If None, defaults to empty list (no pre-existing tables allowed).
         """
         self.credentials_path = Path(credentials_path)
         self.project_id = project_id
         self.dataset_id = dataset_id
+        self.allowed_pre_existing_tables = allowed_pre_existing_tables or []
 
         if not self.credentials_path.exists():
             raise FileNotFoundError(
@@ -309,9 +313,6 @@ class BigQueryLoader:
             ValueError: If table exists but is not the allowed pre-existing table
         """
         project_id, dataset_id, table_name = self._parse_table_id(table_id)
-        
-        # Only allow operations on these specific pre-existing tables
-        ALLOWED_PRE_EXISTING_TABLES = ["v2_faction_40832_crimes-new", "v2_faction_40832_crimes-raw"]
 
         # Ensure dataset exists
         dataset_ref = self.client.dataset(dataset_id)
@@ -330,10 +331,10 @@ class BigQueryLoader:
             logger.debug(f"Table {table_id} already exists")
             
             # Skip all pre-existing tables except the allowed ones
-            if table_name not in ALLOWED_PRE_EXISTING_TABLES:
+            if self.allowed_pre_existing_tables and table_name not in self.allowed_pre_existing_tables:
                 raise ValueError(
                     f"Table {table_id} is a pre-existing table. "
-                    f"Only {ALLOWED_PRE_EXISTING_TABLES} are allowed. "
+                    f"Only {self.allowed_pre_existing_tables} are allowed. "
                     "Skipping - will not modify pre-existing tables."
                 )
             

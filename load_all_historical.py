@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
-"""Load all historical records from API into BigQuery (bypassing time window filter)."""
+"""
+Load all historical records from API into BigQuery (bypassing time window filter).
+
+This utility script fetches ALL records from the configured endpoint without
+applying any time window filters. Useful for:
+- Initial data loading
+- Backfilling historical data
+- Re-syncing after data loss
+
+The script uses the storage mode configured in the endpoint (append or replace).
+
+Usage:
+    python load_all_historical.py
+"""
 
 import logging
 import sys
@@ -32,7 +45,8 @@ def main():
     
     table_id = endpoint.get("table")
     endpoint_url = endpoint.get("url", "")
-    endpoint_path = endpoint_url.replace("https://api.torn.com", "")
+    base_url = config.get_api_base_url()
+    endpoint_path = endpoint_url.replace(base_url, "")
     storage_mode = endpoint.get("storage_mode", "append")
     
     # Get API key
@@ -47,13 +61,17 @@ def main():
         api_key=api_key,
         rate_limit=config.get_rate_limit(endpoint),
         timeout=config.get_timeout(endpoint),
+        base_url=base_url,
     )
     
     # Create BigQuery loader
     credentials_path = config.get_gcp_credentials_path()
     project_id = config.get_gcp_project_id()
     dataset_id = config.get_gcp_dataset_id()
-    bigquery_loader = BigQueryLoader(credentials_path, project_id, dataset_id)
+    allowed_tables = config.get_gcp_allowed_pre_existing_tables()
+    bigquery_loader = BigQueryLoader(
+        credentials_path, project_id, dataset_id, allowed_pre_existing_tables=allowed_tables
+    )
     
     # Load schema
     schema_path = "config/oc_records_schema.json"

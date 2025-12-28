@@ -68,8 +68,9 @@ class Pipeline:
         credentials_path = config.get_gcp_credentials_path()
         project_id = config.get_gcp_project_id()
         dataset_id = config.get_gcp_dataset_id()
+        allowed_tables = config.get_gcp_allowed_pre_existing_tables()
         self.bigquery_loader = BigQueryLoader(
-            credentials_path, project_id, dataset_id
+            credentials_path, project_id, dataset_id, allowed_pre_existing_tables=allowed_tables
         )
 
         # Load schema
@@ -106,6 +107,7 @@ class Pipeline:
             timeout = self.config.get_timeout(endpoint)
             max_retries = self.config.get_max_retries(endpoint)
             retry_delay = self.config.get_retry_delay(endpoint)
+            base_url = self.config.get_api_base_url()
 
             api_client = TornCityAPIClient(
                 api_key=api_key,
@@ -113,6 +115,7 @@ class Pipeline:
                 timeout=timeout,
                 max_retries=max_retries,
                 retry_delay=retry_delay,
+                base_url=base_url,
             )
 
             # Fetch data
@@ -121,15 +124,14 @@ class Pipeline:
 
             # Parse URL to get endpoint path
             # URL format: https://api.torn.com/v2/faction/crimes?params
+            base_url = self.config.get_api_base_url()
             if "?" in endpoint_url:
-                endpoint_path = endpoint_url.split("?")[0].replace(
-                    "https://api.torn.com", ""
-                )
+                endpoint_path = endpoint_url.split("?")[0].replace(base_url, "")
                 # Extract query params if any
                 params_str = endpoint_url.split("?")[1]
                 params = dict(urllib.parse.parse_qsl(params_str))
             else:
-                endpoint_path = endpoint_url.replace("https://api.torn.com", "")
+                endpoint_path = endpoint_url.replace(base_url, "")
                 params = {}
 
             # Handle time windows if configured
